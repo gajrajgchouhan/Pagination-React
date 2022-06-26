@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./styles.css";
 import { faker } from "@faker-js/faker";
-import { useRef } from "react";
 
 const Pagination = ({ currPage, setCurrPage, totalPages }) => {
     return (
@@ -25,7 +24,10 @@ const Pagination = ({ currPage, setCurrPage, totalPages }) => {
     );
 };
 
-const dataAtServer = [...Array(100)].map(() => faker.random.word());
+const dataAtServer = [...Array(100)].map(() => ({
+    word: faker.random.word(),
+    id: faker.datatype.uuid(),
+}));
 console.log("all data", dataAtServer);
 
 const getAllDatafromServer = (page, length) => {
@@ -38,10 +40,12 @@ const getAllDatafromServer = (page, length) => {
 
 const searchfromServer = (page, length, query) => {
     const skip = (page - 1) * length;
+    const filtered = dataAtServer.filter(({ word }) =>
+        word.toLowerCase().includes(query.toLowerCase())
+    );
+    console.log(filtered, "filtered", query);
     return {
-        data: dataAtServer
-            .filter((d) => d.toLowerCase().includes(query.toLowerCase()))
-            .slice(skip + 1, skip + length),
+        data: filtered.slice(skip + 1, skip + length),
         totalPages: Math.ceil(dataAtServer.length / length),
     };
 };
@@ -79,8 +83,8 @@ export default function App() {
             </header>
             <div>Data</div>
             <div className="flex flex-col gap-4 [&>*]:outline">
-                {data?.data?.map((d) => (
-                    <div>{d}</div>
+                {data?.data?.map((d, i) => (
+                    <div key={d.id}>{d.word}</div>
                 ))}
             </div>
             <Pagination
